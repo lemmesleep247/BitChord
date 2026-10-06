@@ -305,13 +305,25 @@ jobs:
 
       - name: Collect Android APK
         run: |
-          v=${{ steps.version.outputs.value }}
+          v="${{ steps.version.outputs.value }}"
 
           mkdir -p dist
 
-          cp \
-            app/build/outputs/apk/prod/release/*.apk \
-            "dist/BitChord-$v-android.apk"
+          apk=$(find app/build/outputs/apk/prod/release \
+            -maxdepth 1 \
+            -type f \
+            -name "*.apk" \
+            | head -n 1)
+
+          if [ -z "$apk" ]; then
+            echo "ERROR: No APK found"
+            find app/build/outputs/apk -type f -name "*.apk" -print
+            exit 1
+          fi
+
+          echo "Found APK: $apk"
+
+          cp "$apk" "dist/BitChord-$v-android.apk"
 
           ls -lh dist
 
